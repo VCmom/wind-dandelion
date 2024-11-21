@@ -60,20 +60,20 @@ class Particle {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = Math.random() * 15 + 10;
-        this.speedX = (Math.random() - 0.5) * 0.5; // 水平速度较小，模拟缓慢漂移
-        this.speedY = -Math.random() * 1; // 初始向上速度
-        this.gravity = 0.02; // 重力加速度
+        this.size = Math.random() * 5 + 5; // 减小种子大小
+        this.speedX = (Math.random() - 0.5) * 0.3; // 减小水平速度
+        this.speedY = -Math.random() * 1.5 - 1; // 增加初始向上速度
+        this.gravity = 0.005; // 减小重力加速度
         this.wind = globalWind; // 初始风力
         this.angle = Math.random() * Math.PI * 2;
-        this.angularSpeed = Math.random() * 0.02 - 0.01;
+        this.angularSpeed = Math.random() * 0.01 - 0.005;
         this.alpha = 1;
     }
 
     update() {
         // 空气阻力
-        this.speedX *= 0.99;
-        this.speedY *= 0.99;
+        this.speedX *= 0.995;
+        this.speedY *= 0.995;
 
         // 更新风力
         this.wind = globalWind;
@@ -144,10 +144,10 @@ function drawDandelion() {
     // 绘制剩余的花瓣（根据种子数量减少）
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 2;
-    let remainingSeeds = Math.max(0, 60 - particles.length / 2); // 简单模拟剩余种子
+    let remainingSeeds = Math.max(0, 30 - particles.length / 3); // 调整剩余种子的计算方式
     for (let i = 0; i < remainingSeeds; i++) {
         ctx.save();
-        ctx.rotate((Math.PI * 2 / 60) * i);
+        ctx.rotate((Math.PI * 2 / 30) * i);
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, -30);
@@ -173,8 +173,8 @@ function animate() {
     let volume = sum / dataArray.length;
 
     // 根据音量生成粒子
-    if (volume > 10 && particles.length < 200) { // 限制最大粒子数量为200
-        const numParticles = Math.min(volume / 5, 10); // 限制每次生成的粒子数量
+    if (volume > 10 && particles.length < 100) { // 将最大粒子数量限制为100
+        const numParticles = Math.min(volume / 20, 3); // 减少每次生成的粒子数量
         for (let i = 0; i < numParticles; i++) {
             particles.push(new Particle(dandelion.x, dandelion.y));
         }
@@ -209,5 +209,5 @@ window.addEventListener('resize', () => {
 canvas.addEventListener('mousemove', function(event) {
     const mouseX = event.clientX;
     // 计算风力，鼠标在屏幕中的位置决定风力大小和方向
-    globalWind = (mouseX / canvas.width - 0.5) * 0.1; // 风力范围：-0.05 ~ 0.05
+    globalWind = (mouseX / canvas.width - 0.5) * 0.05; // 减小风力范围，-0.025 ~ 0.025
 });
