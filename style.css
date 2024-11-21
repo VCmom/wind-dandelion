@@ -9,6 +9,9 @@ body {
     position: relative;
     width: 100vw;
     height: 100vh;
+    /* 移除背景图片 */
+    /* background: url('images/background.jpg') no-repeat center center fixed; */
+    /* background-size: cover; */
 }
 
 #game-canvas {
@@ -23,6 +26,9 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
 }
 
 #prompt p {
@@ -33,12 +39,13 @@ body {
 #start-button {
     padding: 10px 20px;
     font-size: 1em;
-    background-color: #fff;
+    background-color: #88b04b;
+    color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
 #start-button:hover {
-    background-color: #f0f0f0;
+    background-color: #6f8e4f;
 }
