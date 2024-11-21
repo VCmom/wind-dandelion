@@ -6,11 +6,17 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// 定义蒲公英花朵的位置
-const dandelion = {
-    x: canvas.width / 2,
-    y: canvas.height * 0.75
-};
+// 定义蒲公英花朵的位置列表
+const dandelions = [];
+const numDandelions = 5; // 您可以根据需要调整蒲公英的数量
+
+// 随机生成蒲公英的位置
+for (let i = 0; i < numDandelions; i++) {
+    dandelions.push({
+        x: Math.random() * canvas.width * 0.8 + canvas.width * 0.1, // 保持在画布内
+        y: canvas.height * (0.6 + Math.random() * 0.2) // 位于画布的下部
+    });
+}
 
 // 存储种子粒子
 let particles = [];
@@ -60,9 +66,9 @@ class Particle {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = Math.random() * 5 + 5; // 减小种子大小
-        this.speedX = (Math.random() - 0.5) * 0.3; // 减小水平速度
-        this.speedY = -Math.random() * 1.5 - 1; // 增加初始向上速度
+        this.size = Math.random() * 3 + 2; // 减小种子大小，更加轻盈
+        this.speedX = (Math.random() - 0.5) * 0.2; // 水平速度更小
+        this.speedY = -Math.random() * 1.5 - 1.5; // 增加初始向上速度
         this.gravity = 0.005; // 减小重力加速度
         this.wind = globalWind; // 初始风力
         this.angle = Math.random() * Math.PI * 2;
@@ -72,8 +78,8 @@ class Particle {
 
     update() {
         // 空气阻力
-        this.speedX *= 0.995;
-        this.speedY *= 0.995;
+        this.speedX *= 0.998;
+        this.speedY *= 0.998;
 
         // 更新风力
         this.wind = globalWind;
@@ -105,10 +111,10 @@ class Particle {
 
         // 绘制冠毛（白色的放射线）
         ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1;
-        const pappusLength = this.size * 0.6;
-        for (let i = 0; i < 20; i++) {
-            const angle = (Math.PI * 2 / 20) * i;
+        ctx.lineWidth = 0.5;
+        const pappusLength = this.size * 1.5;
+        for (let i = 0; i < 12; i++) {
+            const angle = (Math.PI * 2 / 12) * i;
             const x = Math.cos(angle) * pappusLength;
             const y = Math.sin(angle) * pappusLength;
             ctx.beginPath();
@@ -122,40 +128,54 @@ class Particle {
 }
 
 // 绘制蒲公英花朵
-function drawDandelion() {
-    // 绘制茎
-    ctx.strokeStyle = '#88b04b';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(dandelion.x, dandelion.y);
-    ctx.lineTo(dandelion.x, canvas.height);
-    ctx.stroke();
-
-    // 绘制蒲公英花盘
-    ctx.save();
-    ctx.translate(dandelion.x, dandelion.y);
-
-    // 绘制花盘中心
-    ctx.fillStyle = '#A6795F';
-    ctx.beginPath();
-    ctx.arc(0, 0, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 绘制剩余的花瓣（根据种子数量减少）
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
-    let remainingSeeds = Math.max(0, 30 - particles.length / 3); // 调整剩余种子的计算方式
-    for (let i = 0; i < remainingSeeds; i++) {
-        ctx.save();
-        ctx.rotate((Math.PI * 2 / 30) * i);
+function drawDandelions() {
+    dandelions.forEach((dandelion) => {
+        // 绘制茎
+        ctx.strokeStyle = '#88b04b';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, -30);
+        ctx.moveTo(dandelion.x, dandelion.y);
+        ctx.lineTo(dandelion.x, canvas.height);
         ctx.stroke();
-        ctx.restore();
-    }
 
-    ctx.restore();
+        // 绘制蒲公英花盘
+        ctx.save();
+        ctx.translate(dandelion.x, dandelion.y);
+
+        // 绘制花盘中心
+        ctx.fillStyle = '#A6795F';
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 绘制剩余的花瓣（根据种子数量减少）
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        let remainingSeeds = Math.max(0, 20 - countParticlesFromDandelion(dandelion) / 2); // 调整剩余种子的计算方式
+        for (let i = 0; i < remainingSeeds; i++) {
+            ctx.save();
+            ctx.rotate((Math.PI * 2 / 20) * i);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, -20);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        ctx.restore();
+    });
+}
+
+// 计算特定蒲公英已飘散的种子数量
+function countParticlesFromDandelion(dandelion) {
+    return particles.filter(p => distance(p.originX, p.originY, dandelion.x, dandelion.y) < 1).length;
+}
+
+// 计算两点之间的距离
+function distance(x1, y1, x2, y2) {
+    const dx = x1 - x2;
+    const dy = y1 - y2;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 // 动画循环
@@ -173,11 +193,17 @@ function animate() {
     let volume = sum / dataArray.length;
 
     // 根据音量生成粒子
-    if (volume > 10 && particles.length < 100) { // 将最大粒子数量限制为100
-        const numParticles = Math.min(volume / 20, 3); // 减少每次生成的粒子数量
-        for (let i = 0; i < numParticles; i++) {
-            particles.push(new Particle(dandelion.x, dandelion.y));
-        }
+    if (volume > 5 && particles.length < 200) { // 调整音量阈值和最大粒子数量
+        const numParticles = Math.min(volume / 15, 5); // 调整每次生成的粒子数量
+        dandelions.forEach((dandelion) => {
+            for (let i = 0; i < numParticles; i++) {
+                const particle = new Particle(dandelion.x, dandelion.y);
+                // 记录粒子的起始位置，用于计算剩余种子
+                particle.originX = dandelion.x;
+                particle.originY = dandelion.y;
+                particles.push(particle);
+            }
+        });
     }
 
     // 更新和绘制粒子
@@ -191,8 +217,8 @@ function animate() {
         }
     }
 
-    // 绘制蒲公英
-    drawDandelion();
+    // 绘制蒲公英花朵
+    drawDandelions();
 
     requestAnimationFrame(animate);
 }
@@ -201,13 +227,17 @@ function animate() {
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    dandelion.x = canvas.width / 2;
-    dandelion.y = canvas.height * 0.75;
+
+    // 更新蒲公英的位置（可选，如果需要让蒲公英的位置随窗口变化）
+    for (let i = 0; i < numDandelions; i++) {
+        dandelions[i].x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+        dandelions[i].y = canvas.height * (0.6 + Math.random() * 0.2);
+    }
 });
 
 // 鼠标移动事件监听，用于控制全局风力
 canvas.addEventListener('mousemove', function(event) {
     const mouseX = event.clientX;
     // 计算风力，鼠标在屏幕中的位置决定风力大小和方向
-    globalWind = (mouseX / canvas.width - 0.5) * 0.05; // 减小风力范围，-0.025 ~ 0.025
+    globalWind = (mouseX / canvas.width - 0.5) * 0.03; // 调整风力范围，-0.015 ~ 0.015
 });
